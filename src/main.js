@@ -1,48 +1,31 @@
-const { db } = require("../db/connection.js");
-const Pokemon = require("./model");
+const { db } = require('../db/connection.js')
+const { Pokemon, Badge, Trainer } = require('./models/index.js')
 
 async function main() {
-  await db.sync({ force: true });
+	// await db.sync({ force: true })
 
-  //   CREATE
-  const Pikachu = await Pokemon.create({
-    name: "Pikachu",
-    type: "Electric",
-    weight: 6,
-  });
+	const trainers = await Trainer.findAll()
+	const pokemon = await Pokemon.findAll()
+	const badges = await Badge.findAll()
 
-  await Pokemon.bulkCreate([
-    {
-      name: "Bulbasaur",
-      type: "Grass/Poison",
-      weight: 6.9,
-    },
-    {
-      name: "Charmander",
-      type: "Fire",
-      weight: 8.5,
-    },
-    {
-      name: "Squirtle",
-      type: "Water",
-      weight: 9,
-    },
-  ]);
+	await trainers[0].addPokemon(pokemon[0])
+	await trainers[0].addPokemon([pokemon[1], pokemon[2]])
 
-  //READ
-  const currentPokemon = await Pokemon.findByPk(3);
-  const allPokemon = await Pokemon.findAll();
+	const trainer = await Trainer.findOne({
+		where: {
+			name: 'Red'
+		},
+		include: [Pokemon]
+	})
 
-  // UPDATE
-  const updateResult = await Pokemon.update(
-    { name: "Ivysaur", weight: 13 },
-    { where: { name: "Bulbasaur" } }
-  );
+	//console.log(JSON.stringify(trainer, null, 2))
 
-  //DELETE
-  const deleteResult = await Pokemon.destroy({ where: { name: "Squirtle" } });
+	await trainers[0].addBadge(badges[0])
+	await trainers[1].addBadge(badges[0])
+	await trainers[1].addBadge(badges[1])
 
-  console.log(JSON.stringify(deleteResult, null, 2));
+	const trainersWBadges = await Trainer.findAll({ include: Badge })
+	// console.log(JSON.stringify(trainersWBadges, null, 2))
 }
 
-main();
+main()
